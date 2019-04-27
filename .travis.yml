@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - stable
+
+branches:
+  only:
+  - master
+  - develop
+
+install:
+  - npm install
+  - npm install -g ionic
+
+script:
+  - ionic build --prod

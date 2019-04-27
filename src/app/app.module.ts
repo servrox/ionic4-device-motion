@@ -9,6 +9,9 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 
+import { DeviceMotion } from '@ionic-native/device-motion/ngx';
+import { DeviceOrientation } from '@ionic-native/device-orientation/ngx';
+
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
@@ -16,8 +19,10 @@ import { AppRoutingModule } from './app-routing.module';
   providers: [
     StatusBar,
     SplashScreen,
-    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    DeviceMotion,
+    DeviceOrientation
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }
