@@ -55,7 +55,8 @@
     "protractor": "~5.4.0",
     "ts-node": "~8.1.0",
     "tslint": "~5.16.0",
-    "typescript": "~3.1.6"
+    "typescript": "~3.1.6",
+    "node-sass": "4.12.0"
   },
   "description": "An Ionic project to test device motion + orientation.",
   "cordova": {
