@@ -10,6 +10,7 @@ branches:
 install:
   - npm install
   - npm install -g ionic
+  - npm install -g firebase-tools
 
 script:
   - ionic build --prod
