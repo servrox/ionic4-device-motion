@@ -13,3 +13,6 @@ install:
 
 script:
   - ionic build --prod
+
+after_script:
+  - firebase deploy --token $FIREBASE_TOKEN

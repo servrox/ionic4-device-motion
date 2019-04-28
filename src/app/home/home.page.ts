@@ -11,7 +11,9 @@ enum Availability {
   notAvailable
 }
 
+
 interface Provider {
+  index: number;
   subtitle: string;
   title: string;
   description: string;
@@ -44,8 +46,12 @@ export class HomePage implements OnInit {
   private devicemotion5: BehaviorSubject<string[]> = new BehaviorSubject(['-']);
   devicemotion5$: Observable<string[]> = this.devicemotion5.asObservable();
 
+  private devicemotion6: BehaviorSubject<string[]> = new BehaviorSubject(['-']);
+  devicemotion6$: Observable<string[]> = this.devicemotion6.asObservable();
+
   providers: Provider[] = [
     {
+      index: 0,
       subtitle: 'ionic native',
       title: 'Cordova Device Orientation Plugin',
       description: 'This plugin provides access to the device’s compass which detects the '
@@ -54,6 +60,7 @@ export class HomePage implements OnInit {
       value: this.devicemotion0$
     },
     {
+      index: 1,
       subtitle: 'cordova plugin',
       title: 'Navigator Compass',
       description: 'The access to the device compass in the Cordova plugin is provided by a global navigator.compass object.',
@@ -61,6 +68,7 @@ export class HomePage implements OnInit {
       value: this.devicemotion1$
     },
     {
+      index: 2,
       subtitle: 'window event',
       title: 'DeviceOrientation',
       description: 'Sent when the accelerometer detects a change to the orientation of the device.',
@@ -68,6 +76,7 @@ export class HomePage implements OnInit {
       value: this.devicemotion2$
     },
     {
+      index: 3,
       subtitle: 'ionic native',
       title: 'Cordova Device Motion Plugin',
       description: 'This plugin provides access to the device’s accelerometer which detects the change (delta) in movement '
@@ -76,6 +85,7 @@ export class HomePage implements OnInit {
       value: this.devicemotion3$
     },
     {
+      index: 4,
       subtitle: 'cordova plugin',
       title: 'Navigator Accelerometer',
       description: 'The access to the device accelerometer in the Cordova plugin is obtained by a global navigator.accelerometer object.',
@@ -83,12 +93,21 @@ export class HomePage implements OnInit {
       value: this.devicemotion4$
     },
     {
+      index: 5,
       subtitle: 'window event',
       title: 'DeviceMotion',
       description: 'Sent when a change in acceleration was added. It is different from the DeviceOrientationEvent because it is listening '
         + 'for changes in acceleration as opposed to orientation.',
       availability: Availability.unchecked,
       value: this.devicemotion5$
+    },
+    {
+      index: 6,
+      subtitle: 'Web API',
+      title: 'LinearAccelerationSensor',
+      description: 'To use this sensor, the user must grant permission to the "accelerometer" device sensor through the Permissions API.',
+      availability: Availability.unchecked,
+      value: this.devicemotion6$
     }
   ];
 
@@ -100,8 +119,8 @@ export class HomePage implements OnInit {
 
   ngOnInit() {
     this.platform.ready().then(() => {
-      this.addEventListener();
       this.checkAvailibility();
+      this.addEventListener();
     });
   }
 
@@ -132,6 +151,10 @@ export class HomePage implements OnInit {
       this.providers[0].availability = Availability.notAvailable;
       this.providers[3].availability = Availability.notAvailable;
     }
+
+    if ('LinearAccelerationSensor' in window) { this.providers[6].availability = Availability.available; } else {
+      this.providers[6].availability = Availability.notAvailable;
+    }
   }
 
   private addEventListener() {
@@ -141,73 +164,80 @@ export class HomePage implements OnInit {
     /** DeviceOrientation: ionic native plugin */
     if (this.platform.is('cordova')) {
       this.deviceOrientation.watchHeading().subscribe((data: DeviceOrientationCompassHeading) => {
-        const info = [];
-        info.push(`magneticHeading: ${data.magneticHeading}`);
-        info.push(`trueHeading: ${data.trueHeading}`);
-        info.push(`headingAccuracy: ${data.headingAccuracy}`);
-        info.push(`timestamp: ${data.timestamp}`);
-        this.devicemotion0.next(info);
+        this.headingHandler(data, this.devicemotion0);
       });
     }
 
     /** DeviceOrientation: navigator object */
     if (nav && nav.compass) {
-      nav.compass.watchHeading((data: any) => {
-        const info = [];
-        info.push(`magneticHeading: ${data.magneticHeading}`);
-        info.push(`trueHeading: ${data.trueHeading}`);
-        info.push(`headingAccuracy: ${data.headingAccuracy}`);
-        info.push(`timestamp: ${data.timestamp}`);
-        this.devicemotion1.next(info);
-      }, () => { }, { frequency: 100 });
+      nav.compass.watchHeading((data: any) => { this.headingHandler(data, this.devicemotion1); }, () => { }, { frequency: 100 });
     }
 
     /** DeviceOrientation: window event */
-    this.eventManager.addGlobalEventListener('window', 'deviceorientation', (event: DeviceOrientationEvent) => {
-      // window.addEventListener('deviceorientation', (event: DeviceOrientationEvent) => {
-      const info = [];
-      info.push(`absolute: ${event.absolute}`);
-      info.push(`alpha: ${event.alpha}`);
-      info.push(`beta: ${event.beta}`);
-      info.push(`gamma: ${event.gamma}`);
-      this.devicemotion2.next(info);
-    });
+    if ('DeviceOrientationEvent' in window) {
+      this.eventManager.addGlobalEventListener('window', 'deviceorientation', (event: DeviceOrientationEvent) => {
+        // window.addEventListener('deviceorientation', (event: DeviceOrientationEvent) => {
+        this.rotationHandler(event, this.devicemotion2);
+      });
+    }
 
     /** DeviceMotion: ionic native plugin */
     if (this.platform.is('cordova')) {
-      this.deviceMotion.watchAcceleration().subscribe((data: DeviceMotionAccelerationData) => {
-        const info = [];
-        info.push(`x: ${data.x}`);
-        info.push(`y: ${data.y}`);
-        info.push(`z: ${data.z}`);
-        info.push(`timestamp: ${data.timestamp}`);
-        this.devicemotion3.next(info);
+      this.deviceMotion.watchAcceleration({ frequency: 100 }).subscribe((data: DeviceMotionAccelerationData) => {
+        this.accelerationHandler(data, this.devicemotion3);
       });
     }
 
     /** DeviceMotion: navigator object */
     if (nav && nav.accelerometer) {
       nav.accelerometer.watchAcceleration((data: any) => {
-        const info = [];
-        info.push(`x: ${data.x}`);
-        info.push(`y: ${data.y}`);
-        info.push(`z: ${data.z}`);
-        info.push(`timestamp: ${data.timestamp}`);
-        this.devicemotion4.next(info);
+        this.accelerationHandler(data, this.devicemotion4);
       }, () => { }, { frequency: 100 });
     }
 
     /** DeviceMotion: window event */
-    this.eventManager.addGlobalEventListener('window', 'devicemotion', (event: DeviceMotionEvent) => {
-      // window.addEventListener('devicemotion', (event: DeviceMotionEvent) => {
-      const info = [];
-      info.push(`x: ${event.acceleration.x}`);
-      info.push(`y: ${event.acceleration.y}`);
-      info.push(`z: ${event.acceleration.z}`);
-      this.devicemotion5.next(info);
-    });
+    if ('DeviceMotionEvent' in window) {
+      this.eventManager.addGlobalEventListener('window', 'devicemotion', (event: DeviceMotionEvent) => {
+        // window.addEventListener('devicemotion', (event: DeviceMotionEvent) => {
+        this.accelerationHandler(event.acceleration, this.devicemotion5);
+      });
+    }
+
+    /** LinearAccelerationSensor: Web API */
+    if ('LinearAccelerationSensor' in window) {
+      const accelerometer = new LinearAccelerationSensor();
+      accelerometer.addEventListener('reading', e => { this.accelerationHandler(accelerometer, this.devicemotion6); });
+      accelerometer.start();
+    }
 
     /** compassneedscalibration: window event */
     window.addEventListener('compassneedscalibration', (event) => { event.preventDefault(); }, true);
+  }
+
+  private accelerationHandler(acceleration, subject) {
+    let info;
+    const xyz = '[X, Y, Z]';
+    info = xyz.replace('X', acceleration.x && acceleration.x.toFixed(3));
+    info = info.replace('Y', acceleration.y && acceleration.y.toFixed(3));
+    info = info.replace('Z', acceleration.z && acceleration.z.toFixed(3));
+    subject.next(info);
+  }
+
+  private rotationHandler(rotation, subject) {
+    let info;
+    const xyz = '[X, Y, Z]';
+    info = xyz.replace('X', rotation.alpha && rotation.alpha.toFixed(3));
+    info = info.replace('Y', rotation.beta && rotation.beta.toFixed(3));
+    info = info.replace('Z', rotation.gamma && rotation.gamma.toFixed(3));
+    subject.next(info);
+  }
+
+  private headingHandler(heading, subject) {
+    let info;
+    const xyz = '[X, Y, Z]';
+    info = xyz.replace('X', heading.magneticHeading && heading.magneticHeading.toFixed(3));
+    info = info.replace('Y', heading.trueHeading && heading.trueHeading.toFixed(3));
+    info = info.replace('Z', heading.headingAccuracy && heading.headingAccuracy.toFixed(3));
+    subject.next(info);
   }
 }

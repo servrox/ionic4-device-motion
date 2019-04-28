@@ -11,6 +11,7 @@ Ionic 4 Motion + Orientation Demo App
 * DeviceMotion: ionic native plugin
 * DeviceMotion: navigator object
 * DeviceMotion: window event
+* DeviceMotion: LinearAccelerationSensor (Web API)
 * compassneedscalibration: window event
 
 
