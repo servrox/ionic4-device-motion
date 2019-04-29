@@ -9,7 +9,8 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "gh-pages": "ionic build --prod -- --base-href https://servrox.github.io/ionic4-device-motion/ && npx angular-cli-ghpages --branch=gh-pages --dir=www"
   },
   "private": true,
   "dependencies": {
@@ -45,6 +46,7 @@
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "~10.14.2",
     "@types/w3c-generic-sensor": "^1.0.2",
+    "angular-cli-ghpages": "^0.5.3",
     "codelyzer": "~4.5.0",
     "jasmine-core": "~2.99.1",
     "jasmine-spec-reporter": "~4.2.1",

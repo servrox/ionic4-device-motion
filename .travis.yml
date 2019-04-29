@@ -10,10 +10,9 @@ branches:
 install:
   - npm install
   - npm install -g ionic
-  - npm install -g firebase-tools
 
 script:
   - ionic build --prod
 
 after_script:
-  - firebase deploy --token $FIREBASE_TOKEN
+  - npm run gh-pages
